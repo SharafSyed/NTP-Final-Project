@@ -88,18 +88,24 @@ const NewQuery: NextPage = () => {
                         <form id="newQueryForm" onSubmit={handleSubmit} onKeyDown={(e) => {
                             return e.key != 'Enter';
                         }} className="mt-9 ml-3 mr-3">
+                            
+                            {/* Query Name Input */}
                             <label className="block text-lg font-bold dark:text-white">Query Name</label>
                             <input className="m-2 w-full appearance-none border rounded py-2 px-3 leading-tight focus:outline-none focus:bg-stone-100" value={name} onKeyDown={(e) => {
                                 return e.key != 'Enter';
                             }} onChange={(e) => {
                                 setName(e.target.value);
                             }} type="text" id="name" placeholder="London, ON - 2021/06/07"></input>
+                            
+                            {/* Radius Input */}
                             <label className="block text-lg font-bold dark:text-white">Radius (km)</label>
                             <input className="m-2 w-full appearance-none border rounded py-2 px-3 leading-tight focus:outline-none focus:bg-stone-100" value={radius} onKeyDown={(e) => {
                                 return e.key != 'Enter';
                             }} onChange={(e) => {
                                 setRadius(parseInt(e.target.value));
                             }} type="number" id="radius" placeholder="50"></input>
+
+                            
                             <label className="block text-lg font-bold dark:text-white">Duration</label>
                             <div className="flex flex-wrap -mx-3 mb-2">
                                 <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
