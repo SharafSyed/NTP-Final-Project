@@ -6,11 +6,13 @@ import dynamic from 'next/dynamic'
 import { Fragment, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns'
-import { Dialog, Transition } from '@headlessui/react'
+import { Dialog, Transition, Disclosure, Menu } from '@headlessui/react'
 import { ExclamationIcon, QuestionMarkCircleIcon } from '@heroicons/react/outline'
 import { ITweet } from '../types/tweet';
 import { IQuery } from '../types/query';
+import { IArchivedQuery } from '../types/archivedQuery';
 import { useUser } from '@auth0/nextjs-auth0';
+import { BellIcon, MenuIcon, XIcon } from '@heroicons/react/outline'
 
 // Disable server side rendering
 const Map = dynamic(
@@ -29,6 +31,7 @@ function LoginButtons() {
       <Link href='/query/new' passHref>
         <a className="w-full px-3 py-2 my-2 text-center rounded-md border-2 border-stone-700 bg-stone-600 hover:bg-stone-500 dark:border-stone-400 dark:bg-stone-300 dark:hover:bg-stone-200 shadow-sm text-sm leading-5 font-semibold text-stone-100 dark:text-stone-900">New Query</a>
       </Link>
+      
       <a href="/api/auth/logout" className="w-full px-3 py-2 my-2 text-center rounded-md border hover:bg-slate-100 dark:hover:bg-stone-600 shadow-sm text-sm leading-5 font-semibold dark:text-stone-100">Logout</a>
     </>
   }
@@ -39,6 +42,17 @@ function LoginButtons() {
       <a href="/api/auth/login" className="w-full px-3 py-2 my-2 text-center rounded-md border hover:bg-slate-100 dark:hover:bg-stone-600 shadow-sm text-sm leading-5 font-semibold dark:text-stone-100">Register</a>
     </>
   );
+}
+
+//Navbar constants
+const navigation = [
+  { name: 'Dashboard', href: '/', current: true },
+  { name: 'Archive', href: '/archive/archive', current: false },
+  { name: 'Public Queries', href: '#', current: false },
+]
+
+function classNames(...classes: string[]) {
+  return classes.filter(Boolean).join(' ')
 }
 
 function DeleteQueryButton({ callback }: { callback: () => void }) {
@@ -54,6 +68,25 @@ function DeleteQueryButton({ callback }: { callback: () => void }) {
       onClick={callback}
     >
       Delete
+    </button>
+  }
+
+  return <></>;
+}
+
+function ArchiveQueryButton({ callback }: { callback: () => void }) {
+  const { user, error, isLoading } = useUser();
+
+  if (isLoading) return <></>;
+  if (error) return <></>;
+
+  if (user) {
+    return <button
+      type="button"
+      className="mt-3 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-black hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm"
+      onClick={callback}
+    >
+      Archive
     </button>
   }
 
@@ -87,6 +120,7 @@ const Dashboard: NextPage = () => {
   let [tweets, setTweets] = useState<ITweet[] | undefined>(undefined);
   let [modalQuery, setModalQuery] = useState<IQuery | undefined>(undefined);
   let [open, setOpen] = useState(false);
+
 
   const [refreshKey, setRefreshKey] = useState(0);
   const cancelButtonRef = useRef(null);
@@ -228,12 +262,100 @@ const Dashboard: NextPage = () => {
                       });
                     }
                   }></DeleteQueryButton>
+                  <ArchiveQueryButton callback={
+                    () => {
+                      setOpen(false);
+                      axios.post(`${process.env.NEXT_PUBLIC_API_URL}/query/${modalQuery?.id}/archive`, {}).then(res => {
+                        if (res.data['status'] === 200) {
+                          console.log(res.data['message']);
+                          setRefreshKey((prev) => prev + 1);
+                        }
+                      }).catch(err => {
+                        console.log('Query archive failed');
+                      });
+                    }
+                  }></ArchiveQueryButton>
                 </div>
               </div>
             </Transition.Child>
           </div>
         </Dialog>
       </Transition.Root>
+      {/* Navigation Bar */}
+      <Disclosure as="nav" className="bg-gray-800">
+        {({ open }) => (
+        <>
+          <div className="max-w-13xl mx-auto px-2 sm:px-6 lg:px-8">
+            <div className="relative flex items-center justify-between h-16">
+              <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
+                {/* Mobile menu button*/}
+                <Disclosure.Button className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                  <span className="sr-only">Open main menu</span>
+                  {open ? (
+                    <XIcon className="block h-6 w-6" aria-hidden="true" />
+                  ) : (
+                    <MenuIcon className="block h-6 w-6" aria-hidden="true" />
+                  )}
+                </Disclosure.Button>
+              </div>
+              <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
+                <div className="flex-shrink-0 flex items-center">
+                  <img
+                    className="block lg:hidden h-8 w-auto"
+                    src="https://tailwindui.com/img/logos/workflow-mark-indigo-500.svg"
+                    alt="Workflow"
+                  />
+                  <img
+                    className="hidden lg:block h-8 w-auto"
+                    src="https://tailwindui.com/img/logos/workflow-logo-indigo-500-mark-white-text.svg"
+                    alt="Northern Tornadoes Project Twitter Scraper"
+                  />
+                </div>
+                <div className="hidden sm:block sm:ml-6">
+                  <div className="flex space-x-4">
+                    {navigation.map((item) => (
+                      <a
+                        key={item.name}
+                        href={item.href}
+                        className={classNames(
+                          item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                          'px-3 py-2 rounded-md text-sm font-medium'
+                        )}
+                        aria-current={item.current ? 'page' : undefined}
+                      >
+                        {item.name}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+                {/* Removed Notification Menu */}
+              </div>
+            </div>
+          </div>
+
+          <Disclosure.Panel className="sm:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              {navigation.map((item) => (
+                <Disclosure.Button
+                  key={item.name}
+                  as="a"
+                  href={item.href}
+                  className={classNames(
+                    item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                    'block px-3 py-2 rounded-md text-base font-medium'
+                  )}
+                  aria-current={item.current ? 'page' : undefined}
+                >
+                  {item.name}
+                </Disclosure.Button>
+              ))}
+            </div>
+          </Disclosure.Panel>
+        </>
+      )}
+    </Disclosure>
       <div className="h-screen bg-white dark:bg-stone-900">
         <Head>
           <title>T16 - Dashboard</title>
@@ -243,7 +365,6 @@ const Dashboard: NextPage = () => {
 
         <main className="p-2 grid overflow-hidden grid-cols-4 grid-rows-5 gap-2">
           <div className="row-span-5 col-span-3">
-            <h1 className="font-bold text-xl md:text-xl xl:text-4xl dark:text-white">Dashboard</h1>
             <div className='mt-2 rounded-md'>
               <Map></Map>
             </div>
