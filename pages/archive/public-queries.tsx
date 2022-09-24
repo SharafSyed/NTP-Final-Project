@@ -131,7 +131,7 @@ const Dashboard: NextPage = () => {
                       </Dialog.Title>
                       <div className="mt-2">
                         <p className="text-sm text-gray-500 dark:text-stone-300">
-                          View this query and all it's contents?
+                          View this query and all its contents?
                         </p>
                       </div>
                     </div>
@@ -190,12 +190,12 @@ const Dashboard: NextPage = () => {
                     alt="Workflow"
                   />
                   <img
-                    className="hidden lg:block h-8 w-auto"
-                    src="https://tailwindui.com/img/logos/workflow-logo-indigo-500-mark-white-text.svg"
+                    className="hidden lg:block h-12 w-auto"
+                    src="/NTPLogo.png"
                     alt="Northern Tornadoes Project Twitter Scraper"
                   />
                 </div>
-                <div className="hidden sm:block sm:ml-6">
+                <div className="hidden sm:block sm:ml-6 mt-2">
                   <div className="flex space-x-4">
                     {navigation.map((item) => (
                       <a
