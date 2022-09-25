@@ -1,8 +1,9 @@
 import 'mapbox-gl/dist/mapbox-gl.css';
-import Map, { HeatmapLayer, CircleLayer, Layer, Popup, Source, MarkerDragEvent, Marker } from 'react-map-gl';
+import Map, { HeatmapLayer, CircleLayer, Layer, Popup, Source, MarkerDragEvent, Marker, NavigationControl } from 'react-map-gl';
 import axios from 'axios';
 import { Component, useEffect, useMemo, useState } from 'react';
 import Pin from '../components/pin';
+import React from 'react'
 
 interface ITweetPoint {
 	longitude: any;
@@ -46,25 +47,16 @@ const pointLayerStyle: CircleLayer = {
 	source: 'tweets',
 	minzoom: 7,
 	paint: {
-		'circle-radius': [
-			'interpolate',
-			['linear'],
-			['zoom'],
-			7, ['interpolate',
-				['linear'],
-				['get', 'score'],
-				10, 1,
-				100, 4,
-				1000, 8
-			],
-			16, ['interpolate',
-				['linear'],
-				['get', 'score'],
-				10, 1,
-				100, 50,
-				4000, 200
+		'circle-radius': {
+			property: 'score',
+			type: 'exponential',
+			stops: [
+			  [{ zoom: 15, value: 1 }, 5],
+			  [{ zoom: 15, value: 62 }, 10],
+			  [{ zoom: 22, value: 1 }, 20],
+			  [{ zoom: 22, value: 62 }, 50]
 			]
-		],
+		  },
 		'circle-color': ['interpolate',
 			['linear'],
 			['get', 'score'],
@@ -89,12 +81,18 @@ const pointLayerStyle: CircleLayer = {
 	}
 };
 
-export class QueryMap extends Component<{ location: any, style: any, onMove: (loc: any) => void }> {
+export class QueryMap extends Component<{ location: any, style: any, onMove: (loc: any) => void }, {popupInfo: boolean, viewport: any, myMap: any}> {
 	
 	constructor(props: any) {
 		super(props);
+		this.state = {
+			popupInfo: true,
+			viewport: {},
+			myMap : React.createRef(),
+		}
 	}
 
+	
 	render() {
 		return (
 			<Map reuseMaps
@@ -103,6 +101,7 @@ export class QueryMap extends Component<{ location: any, style: any, onMove: (lo
 					latitude: 43.651,
 					zoom: 5
 				}}
+				ref = {this.state.myMap}
 				mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
 				style={this.props.style}
 				mapStyle="mapbox://styles/mapbox/dark-v10">
@@ -116,10 +115,28 @@ export class QueryMap extends Component<{ location: any, style: any, onMove: (lo
 							longitude: event.lngLat.lng,
 							latitude: event.lngLat.lat
 						});
+						this.setState((state) => {return {popupInfo: true}})
 					}}
 				>
 					<Pin size={20} />
+
 				</Marker>
+				<NavigationControl />
+
+				{this.state.popupInfo && 
+				<Popup
+				latitude = {this.props.location.latitude}
+				longitude = {this.props.location.longitude}
+				offset = {25}
+				onClose = {() => this.setState((state) => {return {popupInfo: false}})}
+				>
+					<div>
+						<h3> Selected Location Coordinates: </h3>
+						<p> Latitude : {this.props.location.latitude} </p>
+						<p> Longitude : {this.props.location.longitude} </p>
+					</div>
+				</Popup>}
+
 			</Map>
 		);
 	}
@@ -131,6 +148,7 @@ export function QueryHeatmap(props: { id: string}) {
 	const [geojson, setGeoJson] = useState(null);
 
 	useEffect(() => {
+		
 		axios(`${process.env.NEXT_PUBLIC_API_URL}/query/${props.id}/geojson`).then(res => {
 			if (res.data.status === 200) {
 				setGeoJson(res?.data['geojson']);
