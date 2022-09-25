@@ -8,6 +8,7 @@ import { IArchivedQuery } from '../../types/archivedQuery';
 import { QueryHeatmap } from '../../components/map';
 import { ITweet } from '../../types/tweet';
 import { CSVLink } from 'react-csv';
+import Link from 'next/link';
 
 const ArchivedQuery: NextPage = () => {
     const router = useRouter();
@@ -15,7 +16,7 @@ const ArchivedQuery: NextPage = () => {
 
     let [tweets, setTweets] = useState<ITweet[] | undefined>(undefined);
     let [query, setQuery] = useState<IArchivedQuery | undefined>(undefined);
-    let [csvTweets, setCsvTweets] = useState<{tweetId: string, likes: string, retweets: string, createdAt: string, longitude: string, latitude: string, keywordCount: string, relatabilityScore: string}[]>([]);
+    let [csvTweets, setCsvTweets] = useState<{tweetId: string, content: string, likes: string, retweets: string,replies: string, mediaCount: string, createdAt: string, longitude: string, latitude: string, keywordCount: string, relatabilityScore: string, link: string}[]>([]);
 
     useEffect(() => {
         axios(`${process.env.NEXT_PUBLIC_API_URL}/query/archive/${id}`).then(res => {
@@ -84,7 +85,7 @@ const ArchivedQuery: NextPage = () => {
                 }
 
                 setCsvTweets(tweetsList.map((a)=> {
-                    return {tweetId: a.id, likes: a.likes.toString(), retweets: a.retweets.toString(), createdAt: format(a.createdAt, 'yyyy/MM/dd'), longitude: a.location.coordinates[0].toString(), latitude: a.location.coordinates[1].toString(), keywordCount: a.keywordCount.toString(), relatabilityScore: a.relatabilityScore.toString()}
+                    return {tweetId: a.id, content: a.content, likes: a.likes.toString(), retweets: a.retweets.toString(), mediaCount: a.media.length.toString(), replies: a.replies.toString(), createdAt: format(a.createdAt, 'yyyy/MM/dd'), longitude: a.location.coordinates[0].toString(), latitude: a.location.coordinates[1].toString(), keywordCount: a.keywordCount.toString(), relatabilityScore: a.relatabilityScore.toString(), link:`https://twitter.com/anyuser/status/${a.id}` }
                 }));
             }
             else setCsvTweets([]);
@@ -100,7 +101,7 @@ const ArchivedQuery: NextPage = () => {
                 <meta name="description" content="Dashboard for NTP use" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            <div className='h-screen bg-white dark:bg-stone-900'>
+            <div className='h-full bg-white dark:bg-stone-900'>
                 <main className="p-2 grid overflow-hidden grid-cols-4 grid-rows-5 gap-2">
                     <div className="row-span-5 col-span-3">
                         <h1 className="font-bold text-xl md:text-xl xl:text-4xl dark:text-white">{query?.name}</h1>
@@ -127,7 +128,10 @@ const ArchivedQuery: NextPage = () => {
                                                 }
                                                 else if (media.type === 'photo') {
                                                     return (
+                                                        <>
                                                         <img key={index} className="rounded m-2" src={media.url} alt="media" />
+                                                        <span className='font-bold'>Link: </span><span className='italic'><a target='_blank' href={`https://twitter.com/anyuser/status/${tweet.id}`} rel='noopener noreferrer' className='text-blue-400 hover:text-blue-300'>Twitter</a></span>
+                                                        </>
                                                     );
                                                 }
                                             })}
@@ -154,15 +158,25 @@ const ArchivedQuery: NextPage = () => {
                             })}
                         </div>
                     </div>
-                    <CSVLink
-                        data = {csvTweets}
-                        headers = {[
-                            {label: "ID", key: "tweetId" }, {label:"Likes", key: "likes" }, {label: "Retweets", key: "retweets" }, {label: "Date", key: "createdAt" }, {label: "Longitude", key: "longitude" }, {label: "Latitude", key: "latitude"}, {label: "Keyword Count", key: "keywordCount" }, {label: "Relatability Score",  key: "relatabilityScore" }
-                        ]}
-                        filename = {query?.name + " - " + query?.id + ".csv"}
-                    >
-                        Download Me
-                    </CSVLink>;
+                    <div className="min-w-full min-h-full p-2 flex flex-col justify-end items-end col-span-4" > 
+                        <CSVLink
+                            data = {csvTweets}
+                            headers = {[
+                                {label: "ID", key: "tweetId" }, {label: "Content", key: "content"}, {label:"Likes", key: "likes" }, {label: "Retweets", key: "retweets" }, {label: "Replies", key: "replies" }, {label: "Media Count", key: "mediaCount" }, {label: "Date", key: "createdAt" }, {label: "Longitude", key: "longitude" }, {label: "Latitude", key: "latitude"}, {label: "Keyword Count", key: "keywordCount" }, {label: "Relatability Score",  key: "relatabilityScore" }, {label: "Link", key: "link"}
+                            ]}
+                            filename = {query?.name + " - " + query?.id + ".csv"}
+                        >
+                            <a className="w-full px-3 py-2 my-2 text-center rounded-md border-2 border-stone-700 bg-stone-600 hover:bg-stone-500 dark:border-stone-400 dark:bg-stone-300 dark:hover:bg-stone-200 shadow-sm text-sm leading-5 font-semibold text-stone-100 dark:text-stone-900">Download Me</a>
+                        </CSVLink>
+
+                        <Link 
+                        href = {'../archive/archive'} passHref
+                        >   
+                        <button className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-stone-400 shadow-sm px-4 py-2 bg-white dark:bg-stone-200 text-base font-medium text-gray-700 hover:bg-gray-50 dark:hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            Back
+                        </button>    
+                        </Link>
+                    </div>
                 </main>
             </div>
         </>
