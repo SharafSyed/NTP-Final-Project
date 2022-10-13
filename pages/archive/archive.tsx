@@ -12,6 +12,7 @@ import { IQuery } from '../../types/query';
 import { IArchivedQuery } from '../../types/archivedQuery';
 import { Disclosure, Menu } from '@headlessui/react';
 import { MenuIcon, XIcon } from '@heroicons/react/outline';
+import { useUser, withPageAuthRequired } from '@auth0/nextjs-auth0';
 
 function DeleteQueryButton({ callback }: { callback: () => void }) {
   return <button
@@ -322,4 +323,4 @@ const Archive : NextPage = () => {
   )
 }
 
-export default Archive
+export default withPageAuthRequired(Archive);

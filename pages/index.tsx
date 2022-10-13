@@ -11,8 +11,8 @@ import { ExclamationIcon, QuestionMarkCircleIcon } from '@heroicons/react/outlin
 import { ITweet } from '../types/tweet';
 import { IQuery } from '../types/query';
 import { IArchivedQuery } from '../types/archivedQuery';
-import { useUser } from '@auth0/nextjs-auth0';
-import { BellIcon, MenuIcon, XIcon } from '@heroicons/react/outline'
+import { useUser, withPageAuthRequired } from '@auth0/nextjs-auth0';
+import { MenuIcon, XIcon } from '@heroicons/react/outline'
 
 // Disable server side rendering
 const Map = dynamic(
@@ -34,7 +34,7 @@ function LoginButtons() {
       
       <a href="/api/auth/logout" className="w-full px-3 py-2 my-2 text-center rounded-md border hover:bg-slate-100 dark:hover:bg-stone-600 shadow-sm text-sm leading-5 font-semibold dark:text-stone-100">Logout</a>
     </>
-  }
+    }
 
   return (
     <>
@@ -48,7 +48,7 @@ function LoginButtons() {
 const navigation = [
   { name: 'Dashboard', href: '/', current: true },
   { name: 'Archive', href: '/archive/archive', current: false },
-  { name: 'Public Queries', href: '#', current: false },
+  { name: 'Public Queries', href: '/archive/public-queries', current: false },
 ]
 
 function classNames(...classes: string[]) {
@@ -70,7 +70,6 @@ function DeleteQueryButton({ callback }: { callback: () => void }) {
       Delete
     </button>
   }
-
   return <></>;
 }
 
@@ -87,7 +86,7 @@ function ArchiveQueryButton({ callback }: { callback: () => void }) {
       onClick={callback}
     >
       Archive
-    </button>
+    </button>  
   }
 
   return <></>;
@@ -301,17 +300,17 @@ const Dashboard: NextPage = () => {
               <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
                 <div className="flex-shrink-0 flex items-center">
                   <img
-                    className="block lg:hidden h-8 w-auto"
+                    className="block lg:hidden h-12 w-auto"
                     src="https://tailwindui.com/img/logos/workflow-mark-indigo-500.svg"
                     alt="Workflow"
                   />
                   <img
-                    className="hidden lg:block h-8 w-auto"
-                    src="https://tailwindui.com/img/logos/workflow-logo-indigo-500-mark-white-text.svg"
+                    className="hidden lg:block h-12 w-auto"
+                    src="/NTPLogo.png"
                     alt="Northern Tornadoes Project Twitter Scraper"
                   />
                 </div>
-                <div className="hidden sm:block sm:ml-6">
+                <div className="hidden sm:block sm:ml-6 mt-2">
                   <div className="flex space-x-4">
                     {navigation.map((item) => (
                       <a
@@ -356,6 +355,8 @@ const Dashboard: NextPage = () => {
         </>
       )}
     </Disclosure>
+
+    {/* Dashboard Start */}
       <div className="h-screen bg-white dark:bg-stone-900">
         <Head>
           <title>T16 - Dashboard</title>
@@ -396,6 +397,7 @@ const Dashboard: NextPage = () => {
                   <div key={index} className="block m-3 p-6 bg-white rounded-lg border border-stone-200 shadow-md dark:bg-stone-800 dark:border-stone-700">
                     <h5 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-white break-words">Tweet: {tweet.id}</h5>
                     <h5 className="mb-2 text-l tracking-tight text-stone-900 dark:text-stone-200">{format(tweet.createdAt, 'yyyy/MM/dd')} - {tweet.relatabilityScore.toFixed(2)} score</h5>
+                    <p className="font-normal text-stone-700 dark:text-stone-400"><span className='font-bold'>Query: </span>{queries?.find(q => q.id === tweet.queryID)?.name}</p>
                     <p className="font-normal text-stone-700 dark:text-stone-400"><span className='font-bold'>Likes: </span>{tweet.likes}</p>
                     <p className="font-normal text-stone-700 dark:text-stone-400"><span className='font-bold'>Matches: </span><span className='italic'>{tweet.keywordCount}</span> keywords matched</p>
                     <p className="font-normal text-stone-700 dark:text-stone-400"><span className='font-bold'>Media: </span><span className='italic'>{tweet.media.length}</span> pieces of content</p>
@@ -414,4 +416,4 @@ const Dashboard: NextPage = () => {
   )
 }
 
-export default Dashboard
+export default withPageAuthRequired(Dashboard);
