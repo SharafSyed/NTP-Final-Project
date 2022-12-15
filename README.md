@@ -2,6 +2,10 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 https://arxiv.org/pdf/1904.10876.pdf
 
+
+# THIS PROJECT WAS ORIGINALLY CREATED BY [towner-10](https://github.com/towner-10)
+The original project was altered for the sake of implementation by the Northern Tornadoes Project
+
 ## Getting Started
 
 First, run the development server:
